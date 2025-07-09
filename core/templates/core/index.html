@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciamento de Riscos de Segurança</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+        }
+        /* Custom styles for better aesthetics */
+        .card {
+            background-color: white;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+        }
+        .btn-primary {
+            background-color: #4f46e5; /* Indigo 600 */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem; /* rounded-lg */
+            transition: background-color 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #4338ca; /* Indigo 700 */
+        }
+        .input-field {
+            border: 1px solid #d1d5db; /* Gray 300 */
+            border-radius: 0.5rem; /* rounded-lg */
+            padding: 0.75rem 1rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        /* Estilos adicionais para a tabela de resultados do Trivy */
+        .trivy-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .trivy-table th, .trivy-table td {
+            border: 1px solid #e2e8f0; /* Gray 200 */
+            padding: 0.75rem;
+            text-align: left;
+        }
+        .trivy-table th {
+            background-color: #edf2f7; /* Gray 100 */
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.875rem; /* text-sm */
+            color: #4a5568; /* Gray 700 */
+        }
+        .trivy-table tr:nth-child(even) {
+            background-color: #f7fafc; /* Gray 50 */
+        }
+        .trivy-table tr:hover {
+            background-color: #ebf8ff; /* Blue 50 */
+        }
+        .severity-critical { color: #dc2626; font-weight: bold; } /* Red 600 */
+        .severity-high { color: #f59e0b; font-weight: bold; }    /* Amber 500 */
+        .severity-medium { color: #facc15; font-weight: bold; }  /* Yellow 500 */
+        .severity-low { color: #22c55e; font-weight: bold; }     /* Green 500 */
+        .severity-unknown { color: #6b7280; } /* Gray 500 */
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+    <!-- Header Section -->
+    <header class="bg-indigo-700 text-white p-4 shadow-lg rounded-b-xl">
+        <div class="container mx-auto flex flex-col sm:flex-row justify-between items-center">
+            <h1 class="text-3xl font-bold mb-2 sm:mb-0">🛡️ Gerenciamento de Riscos de Segurança</h1>
+            <nav>
+                <ul class="flex flex-wrap justify-center space-x-4">
+                    <li><a href="#sca" class="hover:text-indigo-200 transition-colors duration-300">SCA</a></li>
+                    <li><a href="#sast" class="hover:text-indigo-200 transition-colors duration-300">SAST</a></li>
+                    <li><a href="#dast" class="hover:text-indigo-200 transition-colors duration-300">DAST</a></li>
+                    <li><a href="#risk-level" class="hover:text-indigo-200 transition-colors duration-300">Nível de Risco</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="container mx-auto p-6 flex-grow">
+        <!-- SCA Module -->
+        <section id="sca" class="card p-6 mb-8">
+            <h2 class="text-2xl font-semibold text-indigo-800 mb-4">Módulo 1: SCA - Análise de Dependências</h2>
+            <p class="text-gray-700 mb-4">
+                Este módulo foca na análise de componentes de software de código aberto e bibliotecas de terceiros para identificar vulnerabilidades conhecidas e problemas de licenciamento.
+                Ajuda a garantir que as dependências utilizadas no seu projeto sejam seguras e estejam em conformidade.
+            </p>
+            <div class="bg-gray-100 p-4 rounded-lg border border-gray-200 mb-4">
+                <label for="github-link-sca" class="block text-gray-700 text-sm font-bold mb-2">Link do Repositório/Arquivo GitHub para SCA:</label>
+                <input type="text" id="github-link-sca" class="input-field mb-4" placeholder="Ex: https://raw.githubusercontent.com/LUCASRENAA/python-ssh/refs/heads/main/requirements.txt">
+                <button id="scan-sca-btn" class="btn-primary w-full md:w-auto">Realizar Análise SCA</button>
+            </div>
+            <div id="sca-results" class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded-lg hidden" role="alert">
+                <p class="font-bold">Resultados da Análise SCA:</p>
+                <div id="sca-output-container" class="text-sm mt-2">
+                    <!-- A tabela de resultados do Trivy será inserida aqui -->
+                </div>
+            </div>
+            <div id="sca-error-message" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg hidden" role="alert">
+                <p class="font-bold">Erro na Análise SCA:</p>
+                <p id="sca-error-text" class="text-base"></p>
+            </div>
+        </section>
+
+        <!-- SAST Module -->
+        <section id="sast" class="card p-6 mb-8">
+            <h2 class="text-2xl font-semibold text-indigo-800 mb-4">Módulo 2: SAST - Code Review Estático</h2>
+            <p class="text-gray-700 mb-4">
+                O SAST (Static Application Security Testing) analisa o código-fonte, bytecode ou binários de um aplicativo para identificar vulnerabilidades de segurança sem a necessidade de executar o código.
+                É uma ferramenta essencial para encontrar falhas de segurança precocemente no ciclo de desenvolvimento.
+            </p>
+            <div class="bg-gray-100 p-4 rounded-lg border border-gray-200">
+                <p class="text-gray-600 italic">Resultados do code review SAST serão exibidos aqui...</p>
+                <!-- Placeholder for SAST specific content, e.g., code vulnerabilities, best practices violations -->
+            </div>
+        </section>
+
+        <!-- DAST Module -->
+        <section id="dast" class="card p-6 mb-8">
+            <h2 class="text-2xl font-semibold text-indigo-800 mb-4">Módulo 3: DAST - Análise Dinâmica da Aplicação</h2>
+            <p class="text-gray-700 mb-4">
+                O DAST (Dynamic Application Security Testing) testa um aplicativo em execução para encontrar vulnerabilidades que podem ser exploradas por invasores.
+                Ele simula ataques externos para identificar falhas de segurança em tempo real, como injeção de SQL, XSS e outras.
+            </p>
+            <div class="bg-gray-100 p-4 rounded-lg border border-gray-200">
+                <p class="text-gray-600 italic">Relatórios de análise dinâmica DAST serão exibidos aqui...</p>
+                <!-- Placeholder for DAST specific content, e.g., runtime vulnerabilities, attack vectors -->
+            </div>
+        </section>
+
+        <!-- Business Risk Level Module -->
+        <section id="risk-level" class="card p-6 mb-8">
+            <h2 class="text-2xl font-semibold text-indigo-800 mb-4">Módulo 4: Nível de Risco Empresarial</h2>
+            <p class="text-gray-700 mb-4">
+                Este módulo permite associar os resultados das ferramentas de segurança (SCA, SAST, DAST) a empresas específicas e calcular um nível de risco empresarial consolidado.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label for="tool-select" class="block text-gray-700 text-sm font-bold mb-2">Selecione a Ferramenta:</label>
+                    <select id="tool-select" class="input-field">
+                        <option value="">-- Selecione uma Ferramenta --</option>
+                        <option value="sca">SCA</option>
+                        <option value="sast">SAST</option>
+                        <option value="dast">DAST</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="company-select" class="block text-gray-700 text-sm font-bold mb-2">Selecione a Empresa:</label>
+                    <select id="company-select" class="input-field">
+                        <option value="">-- Selecione uma Empresa --</option>
+                        <option value="empresaA">Empresa A</option>
+                        <option value="empresaB">Empresa B</option>
+                        <option value="empresaC">Empresa C</option>
+                    </select>
+                </div>
+            </div>
+
+            <button id="generate-risk-btn" class="btn-primary w-full md:w-auto mb-6">Gerar Nível de Risco</button>
+
+            <div id="risk-result" class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded-lg hidden" role="alert">
+                <p class="font-bold">Nível de Risco Calculado:</p>
+                <p id="risk-value" class="text-xl"></p>
+            </div>
+            <div id="error-message" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg hidden" role="alert">
+                <p class="font-bold">Erro:</p>
+                <p id="error-text" class="text-base"></p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer Section -->
+    <footer class="bg-gray-800 text-white p-4 text-center rounded-t-xl mt-8">
+        <p>&copy; 2025 Aplicação de Gerenciamento de Riscos. Todos os direitos reservados.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const toolSelect = document.getElementById('tool-select');
+            const companySelect = document.getElementById('company-select');
+            const generateRiskBtn = document.getElementById('generate-risk-btn');
+            const riskResultDiv = document.getElementById('risk-result');
+            const riskValueSpan = document.getElementById('risk-value');
+            const errorMessageDiv = document.getElementById('error-message');
+            const errorTextP = document.getElementById('error-text');
+
+            // SCA specific elements
+            const githubLinkSCA = document.getElementById('github-link-sca');
+            const scanSCABtn = document.getElementById('scan-sca-btn');
+            const scaResultsDiv = document.getElementById('sca-results');
+            const scaOutputContainer = document.getElementById('sca-output-container'); // Changed from sca-output-pre
+            const scaErrorMessageDiv = document.getElementById('sca-error-message');
+            const scaErrorTextP = document.getElementById('sca-error-text');
+
+            // Function to display general messages (for Risk Level module)
+            function showMessage(type, message) {
+                if (type === 'error') {
+                    errorMessageDiv.classList.remove('hidden');
+                    riskResultDiv.classList.add('hidden');
+                    errorTextP.textContent = message;
+                } else if (type === 'success') {
+                    riskResultDiv.classList.remove('hidden');
+                    errorMessageDiv.classList.add('hidden');
+                    riskValueSpan.textContent = message;
+                } else {
+                    riskResultDiv.classList.add('hidden');
+                    errorMessageDiv.classList.add('hidden');
+                }
+            }
+
+            // Function to display SCA specific messages (now renders a table)
+            function showSCAMessage(type, message) {
+                scaOutputContainer.innerHTML = ''; // Clear previous content
+                scaResultsDiv.classList.add('hidden');
+                scaErrorMessageDiv.classList.add('hidden');
+
+                if (type === 'error') {
+                    scaErrorMessageDiv.classList.remove('hidden');
+                    scaErrorTextP.textContent = message;
+                } else if (type === 'success') {
+                    scaResultsDiv.classList.remove('hidden');
+                    if (message && message.length > 0) {
+                        const table = document.createElement('table');
+                        table.classList.add('trivy-table');
+
+                        const thead = document.createElement('thead');
+                        thead.innerHTML = `
+                            <tr>
+                                <th>ID da Vulnerabilidade</th>
+                                <th>Pacote</th>
+                                <th>Versão Instalada</th>
+                                <th>Versão Corrigida</th>
+                                <th>Severidade</th>
+                                <th>Descrição</th>
+                                <th>URL Primária</th>
+                            </tr>
+                        `;
+                        table.appendChild(thead);
+
+                        const tbody = document.createElement('tbody');
+                        message.forEach(vuln => {
+                            const row = document.createElement('tr');
+                            const severityClass = `severity-${vuln.Severity ? vuln.Severity.toLowerCase() : 'unknown'}`;
+                            row.innerHTML = `
+                                <td>${vuln.VulnerabilityID}</td>
+                                <td>${vuln.PkgName}</td>
+                                <td>${vuln.InstalledVersion}</td>
+                                <td>${vuln.FixedVersion || 'N/A'}</td>
+                                <td class="${severityClass}">${vuln.Severity}</td>
+                                <td>${vuln.Description || 'N/A'}</td>
+                                <td><a href="${vuln.PrimaryURL}" target="_blank" class="text-blue-600 hover:underline">${vuln.PrimaryURL.split('/')[2] || 'Link'}</a></td>
+                            `;
+                            tbody.appendChild(row);
+                        });
+                        table.appendChild(tbody);
+                        scaOutputContainer.appendChild(table);
+                    } else {
+                        scaOutputContainer.innerHTML = '<p class="text-blue-700">Nenhuma vulnerabilidade encontrada.</p>';
+                    }
+                }
+            }
+
+            generateRiskBtn.addEventListener('click', () => {
+                const selectedTool = toolSelect.value;
+                const selectedCompany = companySelect.value;
+
+                if (!selectedTool || !selectedCompany) {
+                    showMessage('error', 'Por favor, selecione uma ferramenta e uma empresa.');
+                    return;
+                }
+
+                // Simulate risk calculation based on selected tool and company
+                let riskLevel = 'Desconhecido';
+                let riskColor = 'text-blue-700'; // Default color
+
+                if (selectedTool === 'sca') {
+                    if (selectedCompany === 'empresaA') {
+                        riskLevel = 'Baixo (SCA - Empresa A)';
+                        riskColor = 'text-green-700';
+                    } else if (selectedCompany === 'empresaB') {
+                        riskLevel = 'Médio (SCA - Empresa B)';
+                        riskColor = 'text-yellow-700';
+                    } else if (selectedCompany === 'empresaC') {
+                        riskLevel = 'Alto (SCA - Empresa C)';
+                        riskColor = 'text-red-700';
+                    }
+                } else if (selectedTool === 'sast') {
+                    if (selectedCompany === 'empresaA') {
+                        riskLevel = 'Médio (SAST - Empresa A)';
+                        riskColor = 'text-yellow-700';
+                    } else if (selectedCompany === 'empresaB') {
+                        riskLevel = 'Alto (SAST - Empresa B)';
+                        riskColor = 'text-red-700';
+                    } else if (selectedCompany === 'empresaC') {
+                        riskLevel = 'Baixo (SAST - Empresa C)';
+                        riskColor = 'text-green-700';
+                    }
+                } else if (selectedTool === 'dast') {
+                    if (selectedCompany === 'empresaA') {
+                        riskLevel = 'Alto (DAST - Empresa A)';
+                        riskColor = 'text-red-700';
+                    } else if (selectedCompany === 'empresaB') {
+                        riskLevel = 'Baixo (DAST - Empresa B)';
+                        riskColor = 'text-green-700';
+                    } else if (selectedCompany === 'empresaC') {
+                        riskLevel = 'Médio (DAST - Empresa C)';
+                        riskColor = 'text-yellow-700';
+                    }
+                }
+
+                // Update the risk result display
+                riskValueSpan.textContent = riskLevel;
+                riskValueSpan.className = `text-xl font-bold ${riskColor}`; // Apply color based on risk
+                riskResultDiv.classList.remove('hidden');
+                errorMessageDiv.classList.add('hidden'); // Hide any previous error messages
+            });
+
+            // Event listener for SCA scan button
+            scanSCABtn.addEventListener('click', async () => {
+                const githubUrl = githubLinkSCA.value.trim();
+                showSCAMessage('clear'); // Clear previous messages
+
+                if (!githubUrl) {
+                    showSCAMessage('error', 'Por favor, insira um link do GitHub para a análise SCA.');
+                    return;
+                }
+
+                // Show a loading indicator
+                scaOutputContainer.innerHTML = '<p class="text-blue-700">Analisando... Por favor, aguarde.</p>';
+                scaResultsDiv.classList.remove('hidden');
+
+
+                try {
+                    // Realiza a requisição fetch para o backend Django
+                    const response = await fetch('/api/sca-scan/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken') // Ativado para CSRF em produção
+                        },
+                        body: JSON.stringify({ github_url: githubUrl })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.status === 'success') { // Verifica se a resposta HTTP foi bem-sucedida (status 2xx) e o status do backend é 'success'
+                        showSCAMessage('success', data.results);
+                    } else {
+                        // Se a resposta não for OK ou o status for 'error', exibe a mensagem de erro do backend
+                        showSCAMessage('error', data.message || 'Ocorreu um erro desconhecido na análise SCA.');
+                    }
+
+                } catch (error) {
+                    console.error('Erro ao realizar análise SCA:', error);
+                    showSCAMessage('error', 'Ocorreu um erro de rede ou servidor ao tentar realizar a análise SCA. Verifique sua conexão e o status do servidor.');
+                }
+            });
+
+            // Função auxiliar para obter o token CSRF (necessário para requisições POST em Django)
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+        });
+    </script>
+</body>
+</html>
